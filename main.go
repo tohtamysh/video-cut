@@ -78,7 +78,7 @@ func timeToSec(value string) int {
 	}
 
 	switch len(s) {
-	case 0:
+	case 1:
 		v, err := strconv.Atoi(value)
 		if err != nil {
 			logrus.Errorln(err)
