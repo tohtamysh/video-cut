@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"os/exec"
-	"path/filepath"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +16,7 @@ var (
 	timeStart string
 	timeStop  string
 	file      string
+	outputDir string
 )
 
 func main() {
@@ -24,9 +25,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	rootCmd.PersistentFlags().StringVar(&timeStart, "start", "", "начало фрагмента")
-	rootCmd.PersistentFlags().StringVar(&timeStop, "stop", "", "конец фрагмента")
-	rootCmd.PersistentFlags().StringVar(&file, "file", "", "путь до видеофайла")
+	rootCmd.PersistentFlags().StringVarP(&timeStart, "start", "s1", "", "начало фрагмента")
+	rootCmd.PersistentFlags().StringVarP(&timeStop, "stop", "s2", "", "конец фрагмента")
+	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "путь до видеофайла")
+	rootCmd.PersistentFlags().StringVarP(&outputDir, "output", "o", "./", "выходная директория")
 	Execute()
 
 	if timeStart == "" {
@@ -45,7 +47,7 @@ func main() {
 
 	currentTime := time.Now()
 	filename := "./cut_" + currentTime.Format("20060102030405") + ".mp4"
-	videoPath, _ := filepath.Abs(filename)
+	videoPath := path.Join(outputDir, filename)
 
 	ffmpeg := exec.Command(ffmpegPath, "-ss", start, "-i", file, "-t", stop, "-an", "-c", "copy", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", videoPath)
 
