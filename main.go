@@ -26,7 +26,7 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&timeStart, "start", "s", "", "начало фрагмента")
-	rootCmd.PersistentFlags().StringVarP(&timeStop, "end", "s", "", "конец фрагмента")
+	rootCmd.PersistentFlags().StringVarP(&timeStop, "end", "e", "", "конец фрагмента")
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "путь до видеофайла")
 	rootCmd.PersistentFlags().StringVarP(&outputDir, "output", "o", "./", "выходная директория")
 	Execute()
