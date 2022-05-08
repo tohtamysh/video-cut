@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
 	"os/exec"
 	"path"
 	"strconv"
@@ -49,13 +51,25 @@ func main() {
 	timeFragments := make([]timeFragment, 0)
 
 	if batch != "" {
-		fragments := strings.Split(batch, ";")
-		for _, v := range fragments {
-			s := strings.Split(v, ",")
+		file, err := os.Open(batch)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		// optionally, resize scanner's capacity for lines over 64K, see next example
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+			s := strings.Split(scanner.Text(), ",")
 			timeFragments = append(timeFragments, timeFragment{
 				start: s[0],
 				stop:  s[1],
 			})
+		}
+
+		if err := scanner.Err(); err != nil {
+			log.Fatal(err)
 		}
 	} else {
 		timeFragments = append(timeFragments, timeFragment{

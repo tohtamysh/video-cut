@@ -12,4 +12,9 @@ docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -s 10
 
 Что бы нарезать сразу много кусков с одного видео
 
-docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -f /media/orig.mp4 -o /media -b 1-10,1-20;2-20,2-23
+docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -f /media/orig.mp4 -o /media -b /media/link.txt
+
+```text
+1-01,1-30
+2-00,3-00
+```
