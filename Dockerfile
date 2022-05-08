@@ -22,6 +22,8 @@ FROM alpine
 
 RUN apk update --no-cache && apk add --no-cache ca-certificates ffmpeg
 
-WORKDIR /app
-
 COPY --from=builder /app/videocut /app/videocut
+
+ENV PATH "$PATH:/app"
+
+WORKDIR /app

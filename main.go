@@ -3,9 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -29,6 +28,8 @@ type timeFragment struct {
 }
 
 func main() {
+	log.SetReportCaller(true)
+
 	rootCmd.PersistentFlags().StringVarP(&timeStart, "start", "s", "", "начало фрагмента")
 	rootCmd.PersistentFlags().StringVarP(&timeStop, "end", "e", "", "конец фрагмента")
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "путь до видеофайла")
@@ -37,15 +38,15 @@ func main() {
 	Execute()
 
 	if timeStart == "" && batch == "" {
-		logrus.Fatal("Отсуствует аргумент start")
+		log.Fatal("Отсуствует аргумент start")
 	}
 
 	if timeStop == "" && batch == "" {
-		logrus.Fatal("Отсуствует аргумент stop")
+		log.Fatal("Отсуствует аргумент stop")
 	}
 
 	if file == "" {
-		logrus.Fatal("Отсуствует аргумент file")
+		log.Fatal("Отсуствует аргумент file")
 	}
 
 	timeFragments := make([]timeFragment, 0)
@@ -60,7 +61,6 @@ func main() {
 		scanner := bufio.NewScanner(file)
 		// optionally, resize scanner's capacity for lines over 64K, see next example
 		for scanner.Scan() {
-			fmt.Println(scanner.Text())
 			s := strings.Split(scanner.Text(), ",")
 			timeFragments = append(timeFragments, timeFragment{
 				start: s[0],
@@ -105,7 +105,8 @@ func cutVideo(timeStart string, timeStop string, idx int) {
 
 	err = ffmpeg.Run()
 	if err != nil {
-		logrus.Fatal(err)
+		log.Println(ffmpeg.Args)
+		log.Fatal(err)
 	}
 }
 
@@ -127,32 +128,32 @@ func timeToSec(value string) int {
 	case 1:
 		v, err := strconv.Atoi(value)
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 		}
 		return v
 	case 2:
 		m, err := strconv.Atoi(s[0])
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 		}
 		s, err := strconv.Atoi(s[1])
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 		}
 
 		return m*60 + s
 	case 3:
 		h, err := strconv.Atoi(s[0])
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 		}
 		m, err := strconv.Atoi(s[1])
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 		}
 		s, err := strconv.Atoi(s[2])
 		if err != nil {
-			logrus.Errorln(err)
+			log.Errorln(err)
 		}
 
 		return h*60*60 + m*60 + s
