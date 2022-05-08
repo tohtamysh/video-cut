@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"log"
@@ -17,25 +18,27 @@ var (
 	timeStop  string
 	file      string
 	outputDir string
+	batch     string
 )
 
-func main() {
-	ffmpegPath, err := exec.LookPath("ffmpeg")
-	if err != nil {
-		log.Fatal(err)
-	}
+type timeFragment struct {
+	start string
+	stop  string
+}
 
+func main() {
 	rootCmd.PersistentFlags().StringVarP(&timeStart, "start", "s", "", "начало фрагмента")
 	rootCmd.PersistentFlags().StringVarP(&timeStop, "end", "e", "", "конец фрагмента")
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "путь до видеофайла")
 	rootCmd.PersistentFlags().StringVarP(&outputDir, "output", "o", "./", "выходная директория")
+	rootCmd.PersistentFlags().StringVarP(&batch, "batch", "b", "", "batch")
 	Execute()
 
-	if timeStart == "" {
+	if timeStart == "" && batch == "" {
 		logrus.Fatal("Отсуствует аргумент start")
 	}
 
-	if timeStop == "" {
+	if timeStop == "" && batch == "" {
 		logrus.Fatal("Отсуствует аргумент stop")
 	}
 
@@ -43,10 +46,45 @@ func main() {
 		logrus.Fatal("Отсуствует аргумент file")
 	}
 
+	timeFragments := make([]timeFragment, 0)
+
+	if batch != "" {
+		fragments := strings.Split(batch, ";")
+		for _, v := range fragments {
+			s := strings.Split(v, ",")
+			timeFragments = append(timeFragments, timeFragment{
+				start: s[0],
+				stop:  s[1],
+			})
+		}
+	} else {
+		timeFragments = append(timeFragments, timeFragment{
+			start: timeStart,
+			stop:  timeStop,
+		})
+	}
+
+	for idx, v := range timeFragments {
+		cutVideo(v.start, v.stop, idx)
+	}
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func cutVideo(timeStart string, timeStop string, idx int) {
+	ffmpegPath, err := exec.LookPath("ffmpeg")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	start, stop := parseTime(timeStart, timeStop)
 
 	currentTime := time.Now()
-	filename := "./cut_" + currentTime.Format("20060102030405") + ".mp4"
+	filename := fmt.Sprintf("./cut_%s_%d.mp4", currentTime.Format("20060102030405"), idx)
 	videoPath := path.Join(outputDir, filename)
 
 	ffmpeg := exec.Command(ffmpegPath, "-ss", start, "-i", file, "-t", stop, "-an", "-c", "copy", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", videoPath)
@@ -54,12 +92,6 @@ func main() {
 	err = ffmpeg.Run()
 	if err != nil {
 		logrus.Fatal(err)
-	}
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
 	}
 }
 
