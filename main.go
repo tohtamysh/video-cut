@@ -20,11 +20,13 @@ var (
 	file      string
 	outputDir string
 	batch     string
+	name      string
 )
 
 type timeFragment struct {
 	start string
 	stop  string
+	name  string
 }
 
 func main() {
@@ -35,6 +37,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "путь до видеофайла")
 	rootCmd.PersistentFlags().StringVarP(&outputDir, "output", "o", "./", "выходная директория")
 	rootCmd.PersistentFlags().StringVarP(&batch, "batch", "b", "", "batch")
+	rootCmd.PersistentFlags().StringVarP(&name, "name", "n", "", "имя выходного файла без расширения")
 	Execute()
 
 	if timeStart == "" && batch == "" {
@@ -62,24 +65,32 @@ func main() {
 		// optionally, resize scanner's capacity for lines over 64K, see next example
 		for scanner.Scan() {
 			s := strings.Split(scanner.Text(), ",")
-			timeFragments = append(timeFragments, timeFragment{
+			tf := timeFragment{
 				start: s[0],
 				stop:  s[1],
-			})
+			}
+			if len(s) == 3 {
+				tf.name = s[2]
+			}
+			timeFragments = append(timeFragments, tf)
 		}
 
 		if err := scanner.Err(); err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		timeFragments = append(timeFragments, timeFragment{
+		tf := timeFragment{
 			start: timeStart,
 			stop:  timeStop,
-		})
+		}
+		if name != "" {
+			tf.name = name
+		}
+		timeFragments = append(timeFragments, tf)
 	}
 
 	for idx, v := range timeFragments {
-		cutVideo(v.start, v.stop, idx)
+		cutVideo(v, idx)
 	}
 }
 
@@ -89,24 +100,28 @@ func Execute() {
 	}
 }
 
-func cutVideo(timeStart string, timeStop string, idx int) {
+func cutVideo(tf timeFragment, idx int) {
 	ffmpegPath, err := exec.LookPath("ffmpeg")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	start, stop := parseTime(timeStart, timeStop)
+	start, stop := parseTime(tf.start, tf.stop)
 
-	currentTime := time.Now()
-	filename := fmt.Sprintf("./cut_%s_%d.mp4", currentTime.Format("20060102030405"), idx)
+	var filename string
+	if tf.name == "" {
+		currentTime := time.Now()
+		filename = fmt.Sprintf("./cut_%s_%d.mp4", currentTime.Format("20060102030405"), idx)
+	} else {
+		filename = fmt.Sprintf("%s.mp4", tf.name)
+	}
 	videoPath := path.Join(outputDir, filename)
 
 	ffmpeg := exec.Command(ffmpegPath, "-ss", start, "-i", file, "-t", stop, "-an", "-c", "copy", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", videoPath)
 
 	err = ffmpeg.Run()
 	if err != nil {
-		log.Println(ffmpeg.Args)
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 }
 
