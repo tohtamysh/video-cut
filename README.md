@@ -1,3 +1,4 @@
+
 # video-cut
 
 videocut --start=10 --stop=20 --file=path_to_video_file --output=path_to_output_folder
@@ -15,6 +16,6 @@ docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -s 10
 docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -f /media/orig.mp4 -o /media -b /media/link.txt
 
 ```text
-1-01,1-30
+1-01,1-30,file_name
 2-00,3-00
 ```
