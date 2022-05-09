@@ -7,13 +7,13 @@ videocut -s 10 -e 20 -f path_to_video_file -o path_to_output_folder
 
 ## Docker example
 
-docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -s 10 -e 120 -f /media/orig.mp4 -o /media
+docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut videocut -s 10 -e 120 -f /media/orig.mp4 -o /media -n file_name_output
 
 ### Batch
 
 Что бы нарезать сразу много кусков с одного видео
 
-docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut /app/videocut -f /media/orig.mp4 -o /media -b /media/link.txt
+docker run --rm -v $(pwd):/media ghcr.io/tohtamysh/video-cut videocut -f /media/orig.mp4 -o /media -b /media/link.txt
 
 ```text
 1-01,1-30,file_name
